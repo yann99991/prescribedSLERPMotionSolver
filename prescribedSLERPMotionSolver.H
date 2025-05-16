@@ -99,6 +99,9 @@ namespace Foam
         //- Fraction to calculate the motion of each point from the one specified in the motion data files
         pointScalarField p2heightFraction_;
 
+        //- Point displacement field calculated for the harmonic motion case
+        pointVectorField harmonicDisplacement_;
+
         //- Current time index (used for updating)
         label curTimeIndex_;
 
@@ -147,6 +150,9 @@ namespace Foam
 
         // Read and return the motion state
         virtual void readMotionData(std::string &filename, List<List<double>> &motion) const;
+
+        //- Return the height index and fraction to associate each point to a specific height
+        virtual std::pair<int, double> p2HeightAssociation(Vector<double> &point, List<List<double>> &motion, double N_heights);
 
         //- Return the current time state to make sure the current motion state is up to date
         virtual double timeFractionCalculation(double timeValue) const;
