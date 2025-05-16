@@ -111,6 +111,18 @@ Foam::prescribedSLERPMotionSolver::prescribedSLERPMotionSolver(
           dimensionedScalar(dimless, Zero)
           ),
 
+    harmonicDisplacement_(
+        IOobject(
+            "harmonicDisplacement",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false),
+        pointMesh::New(mesh),
+        dimensionedVector(Foam::vector(0, 0, 0))
+        ),
+
       curTimeIndex_(-1)
 
 {
@@ -149,14 +161,54 @@ Foam::prescribedSLERPMotionSolver::prescribedSLERPMotionSolver(
     curTimeIndexRead_ = 0;
 
 
-// Read the motion data from the file
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Read the motion data from the file and compute height index and fraction
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if (motionType_ == "harmonic")
     {
+        // Read the motion data from the file
         std::string filename = path_ + "/motionData.dat";
         readMotionData(filename, motionData);
+
+        double N_heights = motionData.size();
+
+        // Calculate the height index and fraction for each point and store the point displacement
+        forAll(points0(), pointi)
+        {
+            if (scale_[pointi] > SMALL)
+            {
+                // Calculate the height index and fraction for the point
+                auto result = p2HeightAssociation(points0()[pointi], motionData, N_heights);
+
+                int index = result.first;
+                double fraction = result.second;
+
+                // Assign the height index and fraction to the point
+                p2heightIdx_.primitiveFieldRef()[pointi] = index;
+                p2heightFraction_.primitiveFieldRef()[pointi] = fraction;
+
+                // Calculate the transformation septernion for the point
+                septernion transformation = computePointTransformation(index, fraction, motionData);
+
+                // Calculate the scaled point displacement from the point transformation
+                harmonicDisplacement_.primitiveFieldRef()[pointi] = (transformation.transformPoint(points0_[pointi]) - points0_[pointi]) * scale_[pointi];
+            }
+            else
+            {
+                p2heightIdx_.primitiveFieldRef()[pointi] = 0;
+                p2heightFraction_.primitiveFieldRef()[pointi] = 0;
+                harmonicDisplacement_.primitiveFieldRef()[pointi] = Foam::vector(0, 0, 0);
+            }
+        }
+
+        pointConstraints::New(pMesh).constrain(p2heightIdx_);
+        p2heightIdx_.write();
+        pointConstraints::New(pMesh).constrain(p2heightFraction_);
+        p2heightFraction_.write();
+        pointConstraints::New(pMesh).constrain(harmonicDisplacement_);
+        harmonicDisplacement_.write();
     }
+
     else if (motionType_ == "nonHarmonic")
     {
         // Read time values from file
@@ -198,7 +250,37 @@ Foam::prescribedSLERPMotionSolver::prescribedSLERPMotionSolver(
         std::string filename2 = path_ + "/motionData_" + stream2.str() + ".dat";
 
         readMotionData(filename2, nextMotionData);
+
+        double N_heights = motionData.size();
+
+        // Calculate the height index and fraction for each point
+        forAll(points0(), pointi)
+        {
+            if (scale_[pointi] > SMALL)
+            {
+                // Calculate the height index and fraction for the point
+                auto result = p2HeightAssociation(points0()[pointi], motionData, N_heights);
+
+                int index = result.first;
+                double fraction = result.second;
+
+                // Assign the height index and fraction to the point
+                p2heightIdx_.primitiveFieldRef()[pointi] = index;
+                p2heightFraction_.primitiveFieldRef()[pointi] = fraction;
+            }
+            else
+            {
+                p2heightIdx_.primitiveFieldRef()[pointi] = 0;
+                p2heightFraction_.primitiveFieldRef()[pointi] = 0;
+            }
+        }
+
+        pointConstraints::New(pMesh).constrain(p2heightIdx_);
+        p2heightIdx_.write();
+        pointConstraints::New(pMesh).constrain(p2heightFraction_);
+        p2heightFraction_.write();
     }
+
     else
     {
         FatalErrorInFunction
@@ -206,76 +288,6 @@ Foam::prescribedSLERPMotionSolver::prescribedSLERPMotionSolver(
             << "Valid options are: harmonic and nonHarmonic" << exit(FatalError);
     }
 
-
-// Calculate hight matching index and fraction
- // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    double N_heights = motionData.size();
-
-    forAll(points0(), pointi)
-    {
-        if (scale_[pointi] > SMALL)
-        {
-            double x = coeffX_ * points0()[pointi][0];
-            double y = coeffY_ * points0()[pointi][1];
-            double z = coeffZ_ * points0()[pointi][2];
-
-            // Calculate the height/radius of each point
-            double magnitude = sqrt(x * x + y * y + z * z);
-
-            // Determine the sign of the height/radius based on the dominant coefficient
-            double values[] = {x, y, z};
-            double absValues[] = {std::abs(x), std::abs(y), std::abs(z)};
-            int dominantIndex = std::distance(absValues, std::max_element(absValues, absValues + 3));
-            double sign = (values[dominantIndex] >= 0) ? 1.0 : -1.0;
-
-            // Apply the sign to the magnitude to get the signed height
-            double height = sign * magnitude;
-
-            // Assign each points in the mesh to a height index based on the height/radius
-            int index = 0;
-            double fraction = 0.0;
-
-            // Handle edge cases
-            if (height < motionData[0][0])
-            {
-                index = 0;
-                fraction = 0.0;
-            }
-            else if (height > motionData[N_heights - 1][0])
-            {
-                index = N_heights - 2;
-                fraction = 1.0;
-            }
-            else
-            {
-                // Find the heights interval
-                for (int i = 0; i < N_heights - 1; i++)
-                {
-                    if (height >= motionData[i][0] && height <= motionData[i + 1][0])
-                    {
-                        index = i;
-                        fraction = (height - motionData[i][0]) / (motionData[i + 1][0] - motionData[i][0]);
-                        break;
-                    }
-                }
-            }
-
-            // Assign the height index and fraction to the point
-            p2heightIdx_.primitiveFieldRef()[pointi] = index;
-            p2heightFraction_.primitiveFieldRef()[pointi] = fraction;
-        }
-        else
-        {
-            p2heightIdx_.primitiveFieldRef()[pointi] = 0;
-            p2heightFraction_.primitiveFieldRef()[pointi] = 0;
-        }
-    }
-
-    pointConstraints::New(pMesh).constrain(p2heightIdx_);
-    p2heightIdx_.write();
-    pointConstraints::New(pMesh).constrain(p2heightFraction_);
-    p2heightFraction_.write();
 }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -307,6 +319,58 @@ void Foam::prescribedSLERPMotionSolver::readMotionData(std::string &filename, Li
     }
 
     inputFile.close();
+}
+
+// Function to associate each point in the mesh to a specific height/radius by calculating height index and fraction of each point
+std::pair<int, double> Foam::prescribedSLERPMotionSolver::p2HeightAssociation(Vector<double> &point, List<List<double>> &motion, double N_heights)
+{
+    // Multiply each coordinate by the corresponding coefficient
+    double x = coeffX_ * point[0];
+    double y = coeffY_ * point[1];
+    double z = coeffZ_ * point[2];
+
+    // Calculate the height/radius of each point
+    double magnitude = sqrt(x * x + y * y + z * z);
+
+    // Determine the sign of the height/radius based on the dominant coefficient
+    double values[] = {x, y, z};
+    double absValues[] = {std::abs(x), std::abs(y), std::abs(z)};
+    int dominantIndex = std::distance(absValues, std::max_element(absValues, absValues + 3));
+    double sign = (values[dominantIndex] >= 0) ? 1.0 : -1.0;
+
+    // Apply the sign to the magnitude to get the signed height
+    double height = sign * magnitude;
+
+    // Assign each points in the mesh to a height index based on the height/radius
+    int index = 0;
+    double fraction = 0.0;
+
+    // Handle edge cases
+    if (height < motion[0][0])
+    {
+        index = 0;
+        fraction = 0.0;
+    }
+    else if (height > motion[N_heights - 1][0])
+    {
+        index = N_heights - 2;
+        fraction = 1.0;
+    }
+    else
+    {
+        // Find the heights interval
+        for (int i = 0; i < N_heights - 1; i++)
+        {
+            if (height >= motion[i][0] && height <= motion[i + 1][0])
+            {
+                index = i;
+                fraction = (height - motion[i][0]) / (motion[i + 1][0] - motion[i][0]);
+                break;
+            }
+        }
+    }
+
+    return std::pair<int, double>(index, fraction);
 }
 
 // Function to calculate the time fraction needed for interpolation between motion data at two consecutive time-steps
@@ -391,26 +455,10 @@ Foam::prescribedSLERPMotionSolver::curPoints() const
 
     if (motionType_ == "harmonic")
     {
-        forAll(points0(), pointi)
-        {
-            if (scale_[pointi] > SMALL)
-            {
-                int index = p2heightIdx_[pointi];
-                double fraction = p2heightFraction_[pointi];
-
-                septernion transformation = computePointTransformation(index, fraction, motionData);
-
-                // Calculate the scaled point displacement from the point transformation
-                pointDisplacement_.primitiveFieldRef()[pointi] = (transformation.transformPoint(points0_[pointi]) - points0_[pointi]) * scale_[pointi];
-            }
-            else
-            {
-                pointDisplacement_.primitiveFieldRef()[pointi] = Foam::vector(0, 0, 0);
-            }
-        }
+       pointDisplacement_.primitiveFieldRef() = harmonicDisplacement_.primitiveField() * amplitude_ * sin(omega_ * t.value());
 
         tmp<pointField> newPoints(
-            points0() + pointDisplacement_.primitiveField() * amplitude_ * sin(omega_ * t.value()));
+            points0() + pointDisplacement_.primitiveField());
             
         return newPoints;
     }
