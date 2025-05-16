@@ -437,13 +437,13 @@ Foam::septernion Foam::prescribedSLERPMotionSolver::computePointTransformation(i
     // Convert rotation to quaternion
     quaternion rotationQuat(quaternion::XYZ, interpolatedRotation * degToRad());
 
-    // Extract and interpolate center of rotation
-    vector center1(motion[index][1], motion[index][2], motion[index][3]);
-    vector center2(motion[index + 1][1], motion[index + 1][2], motion[index + 1][3]);
-    vector interpolatedCenter = (1 - fraction) * center1 + fraction * center2;
+    // Extract and interpolate centre of rotation
+    vector centre1(motion[index][1], motion[index][2], motion[index][3]);
+    vector centre2(motion[index + 1][1], motion[index + 1][2], motion[index + 1][3]);
+    vector interpolatedCentre = (1 - fraction) * centre1 + fraction * centre2;
 
     // Construct septernion for combined translation and rotation
-    septernion transformation(septernion(-interpolatedCenter + -translation) * rotationQuat * septernion(interpolatedCenter));
+    septernion transformation(septernion(-interpolatedCentre + -translation) * rotationQuat * septernion(interpolatedCentre));
 
     return transformation;
 }
