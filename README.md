@@ -15,7 +15,7 @@ Two motion types are included:
 
 The geometry is that of a cylinder. The original 2D mesh was taken from the OpenFOAM tutorial case `oscillatingCylinder`, available via [this link](https://figshare.com/articles/presentation/OpenFOAM_advanced_training_Moving_meshes_rigid_body_motion_adaptive_mesh_refinement_and_overset_meshes/19310492).
 
-The mesh has been **extruded in the *z*-direction** to produce a fully 3D domain, allowing the application of non-uniform deflections. A **U-bent** type deformation is applied in both cases, with the **mid-span section of the cylinder experiencing the maximum displacement**. The deformation varies either harmonically or non-harmonically depending on the case.
+The mesh has been **extruded in the *z*-direction** to produce a fully 3D domain, allowing the application of non-uniform deflections. A **U-bent** type deformation is applied in both cases, with the **mid-span section of the cylinder experiencing the maximum displacement**, while the edges of the cylinder remain undeformed. The deformation varies either harmonically or non-harmonically depending on the case.
 
 ---
 
