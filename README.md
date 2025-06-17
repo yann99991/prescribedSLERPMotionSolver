@@ -1,8 +1,12 @@
-# **Prescribed SLERP Motion Solver - Test Cases**
+# **Prescribed SLERP Motion Solver**
 
-This folder contains two test cases to assist users in setting up simulations using the `prescribedSLERPMotionSolver` in the **OpenFOAM-ESI** version.
+This folder contains the source code for the **OpenFOAM-ESI** version and two test cases to assist users in setting up simulations using the `prescribedSLERPMotionSolver`.
 
 ## **Overview**
+
+The `prescribedSLERPMotionSolver` is a motion solver for OpenFOAM that allows for the definition of complex mesh motions using Spherical Linear Interpolation (SLERP). A detailed description of this code and its applications has been submitted to the OpenFOAM Journal for publication.
+
+## **Test Cases**
 
 Two motion types are included:
 
@@ -15,7 +19,7 @@ The mesh has been **extruded in the *z*-direction** to produce a fully 3D domain
 
 ---
 
-## **Files Required**
+### **Files Required**
 
 To correctly set up and run each case, ensure the following files are included:
 
@@ -31,7 +35,7 @@ Note: Since the `pointDisplacement` field is calculated by the solver for each m
 
 ---
 
-## **Execution**
+### **Execution**
 
 Each test case folder contains two `Allrun` scripts:
 
@@ -52,7 +56,7 @@ Each test case folder contains two `Allrun` scripts:
 
 ---
 
-## **Note**
+### **Note**
 
 These test cases are intended solely for educational or demonstration purposes, to illustrate the use of the `prescribedSLERPMotionSolver` in OpenFOAM. Further refinement may be necessary for use in physical or production-level simulations.
 
