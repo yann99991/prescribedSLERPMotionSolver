@@ -457,6 +457,7 @@ Foam::prescribedSLERPMotionSolver::curPoints() const
     {
        pointDisplacement_.primitiveFieldRef() = harmonicDisplacement_.primitiveField() * amplitude_ * sin(omega_ * t.value());
 
+        // Calculate the updated points location
         tmp<pointField> newPoints(
             points0() + pointDisplacement_.primitiveField());
             
@@ -493,6 +494,7 @@ Foam::prescribedSLERPMotionSolver::curPoints() const
             }
         }
 
+        // Calculate the updated points location
         tmp<pointField> newPoints(
             points0() + pointDisplacement_.primitiveField());
             

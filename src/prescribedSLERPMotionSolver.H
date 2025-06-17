@@ -50,7 +50,7 @@ namespace Foam
 {
 
     /*---------------------------------------------------------------------------*\
-                     Class sixDoFRigidBodyMotionSolver Declaration
+                     Class prescribedSLERPMotionSolver Declaration
     \*---------------------------------------------------------------------------*/
 
     class prescribedSLERPMotionSolver
