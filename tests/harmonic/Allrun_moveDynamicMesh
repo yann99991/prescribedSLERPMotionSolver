@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#------------------------------------------------------------------------------
+
+# Choose the appropriate controlDict to run the moveDynamicMesh case
+mv system/controlDict_moveDynamicMesh system/controlDict
+
+# Run checkMesh
+checkMesh >log.checkMesh
+
+# Run moveDynamicMesh to check the mesh motion
+moveDynamicMesh >log.moveDynamicMesh
+
+# Change the controlDict name to the original one
+mv system/controlDict system/controlDict_moveDynamicMesh
+
+#------------------------------------------------------------------------------

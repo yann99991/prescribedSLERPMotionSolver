@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#------------------------------------------------------------------------------
+
+# Choose the appropriate controlDict to run the pimpleFoam case
+mv system/controlDict_pimpleFoam system/controlDict
+
+# Run checkMesh
+checkMesh >log.checkMesh
+
+# Decompose the case
+decomposePar
+
+# Run pimpleFoam with 30 cores
+mpirun -np 30 pimpleFoam -parallel >log.pimpleFoam
+
+# Recontruct the case
+reconstructPar -noZero
+
+# Change the controlDict name to the original one
+mv system/controlDict system/controlDict_pimpleFoam
+
+#------------------------------------------------------------------------------

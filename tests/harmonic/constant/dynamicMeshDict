@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh      dynamicMotionSolverFvMesh;
+
+motionSolverLibs ("prescribedSLERPMotionSolver.so");
+
+motionSolver       prescribedSLERPMeshMotion;
+
+prescribedSLERPMeshMotionCoeffs
+{
+
+patches         (Cylinder);   // Name of the deforming patch
+
+innerDistance   0.1;          // Normal inner distance from the deforming patch
+outerDistance   12;           // Normal outer distance from the deforming patch
+
+// Coefficients defining the height/radius calculation --> z-axis in this case
+coefficientX 0.0;
+coefficientY 0.0;
+coefficientZ 1.0;
+
+motionType harmonic;  // Harmonic motion type
+
+amplitude 1;  // Amplitude for harmonic motion
+omega 6.283;  // Frequency for harmonic motion in rad/s
+
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+     "pcorr.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-04;
+        relTol          0.05;
+    }
+
+    p
+    {
+        $pcorr;
+        tolerance        1e-4;
+        relTol           0.05;
+    }
+
+    pFinal
+    {
+        $p;
+        tolerance        1e-6;
+        relTol           0;
+    }
+
+    "(U|k|epsilon|R|nuTilda)"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-8;
+        relTol          0; 
+    }
+
+    "(U|k)Final"
+    {
+        $U;
+        tolerance       1e-08;
+        relTol          0;
+    }
+
+    omega
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-10;
+        relTol          0;
+    }
+
+    omegaFinal
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-10;
+        relTol          0;
+    }
+
+    "cellDisplacement.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-08;
+        relTol          0;
+        minIter         3;              // (ALM) Added
+    }
+}
+
+PIMPLE
+{
+    correctPhi          yes;
+    nOuterCorrectors 2;
+    nCorrectors     1;
+    nNonOrthogonalCorrectors 2;
+}
+
+cache
+{
+    grad(U);
+}
+
+// ************************************************************************* //
