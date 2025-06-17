@@ -31,7 +31,7 @@ To correctly set up and run each case, ensure the following files are included:
 * `timeArray.dat` - required for the non-harmonic case to define motion timing
 * `pointDisplacement` file in the `0/` directory - to specify displacement behaviour
 
-Note: Since the `pointDisplacement` field is calculated by the solver for each mesh point, all boundaries of the domain can be assigned the type `calculated`.
+Note: Since the `pointDisplacement` field is calculated by the solver for each mesh point, all boundaries of the domain can be assigned the type `calculated`. Additionally, for the non-harmonic motion case, the file `motionData_0.000000000.dat` must always be included, with all translational and rotational degrees of freedom set to zero.
 
 ---
 
