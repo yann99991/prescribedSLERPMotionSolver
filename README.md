@@ -6,6 +6,31 @@ This folder contains the source code for the **OpenFOAM-ESI** version and two te
 
 The `prescribedSLERPMotionSolver` is a motion solver for OpenFOAM that allows for the definition of complex mesh motions using Spherical Linear Interpolation (SLERP). A detailed description of this code and its applications has been submitted to the OpenFOAM Journal for publication.
 
+Here’s a clearer and more polished version of your instructions, using UK English and consistent formatting—suitable for inclusion in a `README.md`:
+
+---
+
+## **Compilation Instructions**
+
+To compile the `prescribedSLERPMotionSolver` function:
+
+1. **Download** the `src` folder provided in this repository.
+2. **Source** your OpenFOAM-ESI environment (make sure you are using a compatible ESI version).
+3. **Clean** the build directory by running:
+
+   ```bash
+   wclean
+   ```
+4. **Compile** the function using:
+
+   ```bash
+   wmake
+   ```
+
+Once compiled, the library will be placed in your `$(FOAM_USER_LIBBIN)` directory and will be immediately available for use in your `dynamicMeshDict`.
+
+---
+
 ## **Test Cases**
 
 Two motion types are included:
