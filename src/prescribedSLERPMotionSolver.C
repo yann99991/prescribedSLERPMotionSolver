@@ -388,7 +388,7 @@ double Foam::prescribedSLERPMotionSolver::timeFractionCalculation(double timeVal
     }
     else
     {
-        // Read the next file
+        // Update the current time index
         curTimeIndexRead_++;
 
         // Safeguard against going out of bounds
@@ -402,7 +402,7 @@ double Foam::prescribedSLERPMotionSolver::timeFractionCalculation(double timeVal
         double t2 = timeArray[curTimeIndexRead_ + 1];
         double timeFraction = (timeValue - t1) / (t2 - t1);
 
-        // Read the next file
+        // Copy nextMotionData to motionData
         motionData = nextMotionData;
 
         // Clear the nextMotionData list
@@ -415,6 +415,7 @@ double Foam::prescribedSLERPMotionSolver::timeFractionCalculation(double timeVal
         stream << std::fixed << std::setprecision(9) << timeDouble; // Set precision to 9 decimal places
         std::string filename = path_ + "/motionData_" + stream.str() + ".dat";
 
+         // Read the next file
         readMotionData(filename, nextMotionData);
 
         return timeFraction;
